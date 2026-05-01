@@ -50,7 +50,7 @@ The command "windres" is used to read the icon and output it in a binary format,
 
 All the survivor images were taken from the [wiki](https://riskofrain2.fandom.com/wiki/Survivors) hosted on the website [Fandom](https://www.fandom.com/).\
 You can find the icon used as the base for the "reload button" here: <a href="https://www.flaticon.com/free-icons/reload" title="reload icons">Reload icons created by Royyan Wijaya - Flaticon</a>
-The font is called BOMBARDIER, you can find it here: https://www.dafont.com/bombardier.font
+The font is called "BOMBARDIER", you can find it here: https://www.dafont.com/bombardier.font
 
 ## Raylib 
 
