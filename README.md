@@ -1,19 +1,18 @@
 ## A-Star
 
+![Main interface of the program](./GitHubImageMAINSTATE.png)
 This program was made with the intention to be a better visualization of your progress in the alternate game mode: [Eclipse](https://riskofrain2.fandom.com/wiki/Alternate_Game_Modes#Eclipse) in the game: [Risk Of Rain 2](https://riskofrain.2k.com/).
 
-![Main interface of the program](./GitHubImageMAINSTATE.png)
-
 ## How to Use
-
+\
 ![Interface when the xml file was not found](./GitHubImageNOFILESTATE.png)
 
 The program will first load to that screen, it will resort to it werever the xml file was not found or it was not able to open it.
 
 While at that screen, just drop you xml file containing your eclipse achievements inside of it.
 
-You should be able to find yout personal xml file for the game in that location: 
-    [YOUR STEAM INSTALLATION LOCATION]\userdata\[SEU ID USUARIO]\632360\remote\UserProfiles
+You should be able to find yout personal xml file for the game in that location:\
+    ***[YOUR STEAM INSTALLATION LOCATION]\userdata\[SEU ID USUARIO]\632360\remote\UserProfiles***
 
 ## Features
 
