@@ -57,5 +57,5 @@ It was used extensively for this project.
 ## Platforms
 At the moment, Windows is the only platform fully supported. 
 
-[!NOTE]
-AI was used in the making of the images!
+>[!NOTE]
+>AI was used in the making of the images!
