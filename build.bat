@@ -9,5 +9,5 @@ g++ objs/main.o -o main.exe %CFLAGS% -I include/ -L lib/ %LIBS%
 :: Final exe
 IF "%1" == "release" (
     g++ -mwindows -O3 --std=c++17 -I include/ -c src/main.cpp -o objs/main.o 
-    g++ objs/main.o ./icon_res/recursos.res -o A-Star.exe -mwindows -O3 --std=c++17 -I include/ -L lib/ %LIBS%
+    g++ objs/main.o ./icon_res/resources.res -o A-Star.exe -mwindows -O3 --std=c++17 -I include/ -L lib/ %LIBS%
 )
