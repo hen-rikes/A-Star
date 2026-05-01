@@ -58,4 +58,6 @@ It was used extensively for this project.
 At the moment, Windows is the only platform fully supported. 
 
 >[!NOTE]
->AI was used in the making of the images!
+>AI was used in the making of some of the images. :vomiting_face:
+>[!WARNING]
+>While this project was not vibe-coded, it was made very late in the night, so don't expect a lot from the code. :clown_face:
