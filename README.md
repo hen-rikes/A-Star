@@ -2,11 +2,11 @@
 
 This program was made with the intention to be a better visualization of your progress in the alternate game mode: [Eclipse](https://riskofrain2.fandom.com/wiki/Alternate_Game_Modes#Eclipse) in the game: [Risk Of Rain 2](https://riskofrain.2k.com/).
 
-![Main interface of the program](.\GitHubImageMAINSTATE.png)
+![Main interface of the program](./GitHubImageMAINSTATE.png)
 
 ## How to Use
 
-![Interface when the xml file was not found](.\GitHubImageNOFILESTATE.png)
+![Interface when the xml file was not found](./GitHubImageNOFILESTATE.png)
 
 The program will first load to that screen, it will resort to it werever the xml file was not found or it was not able to open it.
 
@@ -61,3 +61,5 @@ It was used extensively in this project and many others.
 
 ## Platforms
 At the moment, Windows is the only platform fully supported. 
+
+# AI was used in the making of the images!
