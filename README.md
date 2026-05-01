@@ -26,25 +26,26 @@ Other save files     - You can change of xml file wherever your want, just remov
 ## WHY
 
 To put it simply, the visualization inside the game its not particularly great, it doesn't show your progress in a unified matter, just the individual levels or the mastery. 
-Since you are likely to interact with it many times in between your various runs, it would be nice to have something more expressive and pleasant to use. So i decided to make it!
+Since you are likely to interact with it many times in between your various runs, it would be nice to have something more expressive and pleasant to use.\
+So i decided to make it!
 
 ## How to Build and Run
 
-*Debug Mode*
+**Debug Mode**
 ````
 $ .\build.bat 
 $ .\main.exe
 ````
 
-*Release Mode*
+**Release Mode**
 ````
 $ windres ./icon_res/resources.rc -O coff -o resources.res 
 $ .\build.bat release
 $ .\A-Star.exe
 ````
 
-The difference here is just the icon and the level of optimization used for compiling everything.
-The command 'windres' is used to read the icon and output it in a binary format, so the compiler can embed it in the final executable.
+The difference here is just the expressive icon and the level of optimization used for compiling everything.
+The command "windres" is used to read the icon and output it in a binary format, so the compiler can embed it in the final executable.
 
 ## Credits
 
