@@ -14,6 +14,8 @@ While at that screen, just drop you xml file containing your eclipse achievement
 You should be able to find your personal xml file used for the game in that location:\
     ***[YOUR STEAM INSTALLATION LOCATION]\userdata\[YOUR USER ID]\632360\remote\UserProfiles***
 
+In the main screen you are able to scroll down or up to visualize all the survivors, see the description of each indivial eclipse modfier and also press the button "Reload" or wait the countdown so the program can update its information based on your file.
+
 ## Features
 
 **Hot Reloading** - The program will periodically reload your xml file and update any new stats.\
@@ -30,15 +32,15 @@ So i decided to make it!
 
 **Debug Mode**
 ````
-$ .\build.bat 
-$ .\main.exe
+$ ./build.bat 
+$ ./main.exe
 ````
 
 **Release Mode**
 ````
-$ windres ./icon_res/resources.rc -O coff -o resources.res 
-$ .\build.bat release
-$ .\A-Star.exe
+$ windres ./icon_res/resources.rc -O coff -o ./icon_res/resources.res 
+$ ./build.bat release
+$ ./A-Star.exe
 ````
 
 The difference here is just the expressive icon and the level of optimization used for compiling everything.
@@ -48,6 +50,7 @@ The command "windres" is used to read the icon and output it in a binary format,
 
 All the survivor images were taken from the [wiki](https://riskofrain2.fandom.com/wiki/Survivors) hosted on the website [Fandom](https://www.fandom.com/).\
 You can find the icon used as the base for the "reload button" here: <a href="https://www.flaticon.com/free-icons/reload" title="reload icons">Reload icons created by Royyan Wijaya - Flaticon</a>
+The font is called BOMBARDIER, you can find it here: https://www.dafont.com/bombardier.font
 
 ## Raylib 
 
