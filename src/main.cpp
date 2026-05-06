@@ -214,6 +214,8 @@ int main() {
     const Texture2D& reload_texture     = textures[7];
 
     UInt state = LOADING_STATE;
+    UInt eclipse_info_xml_file_state{};
+    bool load_eclipse_info_from_xml_file_once = true;
 
     std::map<std::string, UInt> survivors {
         {"Commando", 0},
@@ -333,6 +335,8 @@ int main() {
                 else {
                     state = MAIN_STATE;
                     xml_file = temp_file_path;
+
+                    eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
                 }
 
                 UnloadDroppedFiles(files);
@@ -365,7 +369,12 @@ int main() {
             };
         }
         else if (state == MAIN_STATE) {
-            UInt eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
+            // NOTE: We load the info from the file once at startup.
+            if (load_eclipse_info_from_xml_file_once) {
+                eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
+                load_eclipse_info_from_xml_file_once = false;
+            }
+
             if (eclipse_info_xml_file_state == COULD_NOT_OPEN_FILE) {
                 state = NO_FILE_STATE;
                 time_until_next_update = cooldown_time_for_reloading;
@@ -709,34 +718,6 @@ int main() {
                         { 0.f, 0.f}, 
                         0.f, 
                         WHITE);
-
-                //float numbers_fontsize = completion_percent_fontsize;
-                //Vector2 numbers_size_wh = MeasureTextEx(bombardier, TextFormat("%d", 0), numbers_fontsize, 0.f);
-                //Vector2 numbers_pos = {
-                //    .x = completion_dest.x + (1893.f / completion_scale.x) - (numbers_size_wh.x/2.f),
-                //    .y = completion_dest.y+(completion_dest.height/2.f)-(numbers_fontsize/2.f),
-                //};
-                //DrawCircleV({completion_dest.x, completion_dest.y}, 5.f, RED);
-                //DrawCircleV({completion_dest.x+(1893.f / completion_scale.x), completion_dest.y}, 5.f, RED);
-                //DrawTextEx(bombardier, 
-                //        TextFormat("%d", 0),
-                //        {numbers_pos.x, numbers_pos.y-5},
-                //        numbers_fontsize+20,
-                //        0.f,
-                //        WHITE);
-                //DrawTextEx(bombardier, 
-                //        TextFormat("%d", 0),
-                //        {numbers_pos.x-4.f, numbers_pos.y-4.f},
-                //        numbers_fontsize+8,
-                //        0.f,
-                //        {32, 13, 0, 255});
-                //DrawTextEx(bombardier, 
-                //        TextFormat("%d", 0),
-                //        numbers_pos,
-                //        numbers_fontsize,
-                //        0.f,
-                //        {235, 207, 125, 255});
-
                 // Completion Mastery ------------------------------------------ //
 
                 // Scroll Bar -------------------------------------------------- //
@@ -864,6 +845,7 @@ int main() {
             }
         }
 
+    DrawFPS(0, 0);
         EndDrawing();
     }
 
@@ -871,5 +853,6 @@ int main() {
     UnloadFont(bombardier);
 
     CloseWindow();
+
     return 0;
 }
