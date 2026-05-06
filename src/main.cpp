@@ -646,13 +646,12 @@ int main() {
 
                 const char* completion_text = TextFormat("%d/%d", eclipse_level_sum, survivors_ordered.size()*8);
 
-                float completion_text_fontsize = completion_dest.width*0.12f;
+                float completion_text_fontsize = completion_dest.height*0.30f + completion_dest.width*0.034f;
                 Vector2 completion_text_size = MeasureTextEx(bombardier, completion_text, completion_text_fontsize, 0.f);
 
-                // TODO: Properly center the text
                 Vector2 completion_text_pos = {
-                    .x = (131.f / completion_scale.x + completion_dest.x) + ((870.f / completion_scale.x)/2.f) - (completion_text_size.x/2.f),
-                    .y = (172.f / completion_scale.y + completion_dest.y) + ((305.f / completion_scale.y)/2.f) - completion_text_size.y/2.f,
+                    .x = completion_dest.x + (550 / completion_scale.x) - (completion_text_size.x / 2.f),
+                    .y = completion_dest.y + (320 / completion_scale.y) - (completion_text_size.y / 2.f),
                 };
 
                 // NOTE: Text plus Long Shadows
