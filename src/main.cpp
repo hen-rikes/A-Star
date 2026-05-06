@@ -844,7 +844,6 @@ int main() {
             }
         }
 
-    DrawFPS(0, 0);
         EndDrawing();
     }
 
