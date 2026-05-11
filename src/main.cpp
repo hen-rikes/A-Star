@@ -179,6 +179,47 @@ UInt read_file(const std::string& file_path, std::string& xml_file) {
     return FILE_OPENED_SUCCESSFULLY;
 }
 
+//order_and_correct_survivor_list(survivors, survivors_ordered, eclipse_level_sum, mastery_level);
+
+struct Entity_Index {
+    UInt index;
+    UInt e_level;
+};
+
+std::vector<Entity_Index> survivors_ordered_by_eclipse_level(std::vector<std::pair<std::string, UInt>>& survivors_ordered, std::vector<std::pair<std::string, UInt>>& survivors_descending_order) {
+    survivors_descending_order.clear();
+
+    std::vector<Entity_Index> entity_index{};
+    for (size_t i = 0; i < survivors_ordered.size(); i++) {
+        entity_index.emplace_back((Entity_Index){(UInt)i, survivors_ordered[i].second});
+    }
+
+    size_t index = 0;
+    size_t is_list_sorted = 0;
+    while (1) {
+        if (is_list_sorted == entity_index.size()-1) break;
+
+        if (index >= entity_index.size()-1) {
+            is_list_sorted = 0;
+            index = 0;
+        }
+
+        if (entity_index[index].e_level < entity_index[index+1].e_level) {
+            auto temp_entity = entity_index[index+1];
+            entity_index[index+1] = entity_index[index];
+            entity_index[index] = temp_entity;
+        } else {
+            is_list_sorted++;
+        }
+
+        index++;
+    }
+
+    for (size_t i = 0; i < survivors_ordered.size(); i++) survivors_descending_order.emplace_back(survivors_ordered[entity_index[i].index]);
+
+    return entity_index;
+}
+
 int main() {
     int width = 980, height = 900;
     InitWindow(width, height, "A-Star");
@@ -245,9 +286,7 @@ int main() {
             std::cout << "Could not open file!\n";
             state = LOADING_STATE;
             xml_file = "";
-    } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) {
-        state = LOADING_STATE;
-    }
+    } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) state = LOADING_STATE;
 
     // MainState Setup -------------------------------- //
     std::vector<std::pair<std::string, UInt>> survivors_ordered{ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, };
@@ -276,9 +315,16 @@ int main() {
     float acceleration = 800.f;
     float velocity = 0.f;
     float max_velocity = 60.f;
-    float friction = 230.f;
+    float friction = 220.f;
     int direction = 0.f;
     // MainState Setup -------------------------------- //
+
+    std::vector<std::pair<std::string, UInt>> survivors_descending_order;
+    std::vector<Entity_Index> entity_index{};
+    Vector2 survivors_image_pos[] = {
+        { 0.f, 0.f }, { 256.f, 0.f, }, { 512.f, 0.f, }, { 768.f, 0.f, }, { 1024.f, 0.f, }, { 1280.f, 0.f, }, { 1536.f, 0.f, },
+        { 0.f, 256.f }, { 128.f, 256.f }, { 256.f, 256.f }, { 384.f, 256.f }, { 512.f, 256.f }, { 640.f, 256.f }, { 768.f, 256.f }, { 896.f, 256.f }, { 1024.f, 256.f }, { 1152.f, 256.f }, { 1280.f, 256.f }, 
+    };
 
     SetTargetFPS(60);
     while (!WindowShouldClose()) {
@@ -288,8 +334,7 @@ int main() {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // TODO: Find better colors;
-        Color color1 = { 62, 49, 115, 255 }; //{ 32, 25, 59, 255 };
+        Color color1 = { 62, 49, 115, 255 };
         Color color2 = { 29, 24, 47, 255 };
         DrawRectangleGradientV(0, 0, width, height, color1, color2);
 
@@ -342,7 +387,7 @@ int main() {
                 UnloadDroppedFiles(files);
             }
 
-            std::string drop_file_here_text = "Drop File Here!";
+            std::string drop_file_here_text = "Drop Your File Here!";
             float drop_file_here_fontsize = width*0.1f;
             Vector2 drop_file_here_text_size = MeasureTextEx(bombardier, drop_file_here_text.c_str(), drop_file_here_fontsize, 0.f);
 
@@ -381,6 +426,7 @@ int main() {
                 continue;
             } else if (eclipse_info_xml_file_state == FILE_OPENED_SUCCESSFULLY) {
                 order_and_correct_survivor_list(survivors, survivors_ordered, eclipse_level_sum, mastery_level);
+                entity_index = survivors_ordered_by_eclipse_level(survivors_ordered, survivors_descending_order);
 
                 if (mouse_wheel.y != 0) {
                     velocity += acceleration * GetFrameTime();
@@ -408,149 +454,150 @@ int main() {
                     } else if (eclipse_info_xml_file_state == FILE_OPENED_SUCCESSFULLY) {
                         eclipse_level_sum = 0;
                         mastery_level = 0;
+
                         order_and_correct_survivor_list(survivors, survivors_ordered, eclipse_level_sum, mastery_level);
+                        entity_index = survivors_ordered_by_eclipse_level(survivors_ordered, survivors_descending_order);
                     }
                 } 
 
                 std::vector<Eclipse_Level_Collsion_Entity> eclipse_level_collision_entities = {};
 
                 BeginMode2D(camera);
-                size_t survivor_index = {0};
-                for (size_t y = 0; y < 2; y++) {
-                    UInt number_of_images = y < 1 ? 7 : 11; // NOTE: Based on the number of survivors in each row in the survivors.png
-                    for (size_t x = 0; x < number_of_images; x++, survivor_index++) {
-                        // TODO: Make the survivors wrap around, make 2 columns.
+                for (size_t index = 0; index < survivors_descending_order.size(); index++) {
+                    // Template ---------------------------------------- //
+                    Rectangle template_source = {
+                        .x = 0.f,
+                        .y = 0.f,
+                        .width  = (float)template_texture.width,
+                        .height = (float)template_texture.height,
+                    };
 
-                        // Template ---------------------------------------- //
-                        Rectangle template_source = {
-                            .x = 0.f,
-                            .y = 0.f,
-                            .width  = (float)template_texture.width,
-                            .height = (float)template_texture.height,
-                        };
+                    Vector2 template_size = {
+                        .x = width * 0.85f,
+                        .y = template_size.x*0.2f,
+                    };
 
-                        Vector2 template_size = {
-                            .x = width * 0.85f,
-                            .y = template_size.x*0.2f,
-                        };
+                    float padding_between_templates = template_size.y * 0.12f;
+                    float template_centered_x = width/2.f - template_size.x/2.f;
 
-                        float padding_between_templates = template_size.y * 0.12f;
-                        float template_centered_x = width/2.f - template_size.x/2.f;
+                    Rectangle template_dest = {
+                        .x = template_centered_x,
+                        .y = (index * (template_size.y + padding_between_templates)) + padding_between_templates,
+                        .width  = template_size.x,
+                        .height = template_size.y,
+                    };
 
-                        Rectangle template_dest = {
-                            .x = template_centered_x,
-                            .y = (survivor_index * (template_size.y + padding_between_templates)) + padding_between_templates,
-                            .width  = template_size.x,
-                            .height = template_size.y,
-                        };
+                    DrawTexturePro(template_texture, 
+                            template_source, 
+                            template_dest, 
+                            { 0.f, 0.f}, 
+                            0.f, 
+                            WHITE);
 
-                        DrawTexturePro(template_texture, 
-                                template_source, 
-                                template_dest, 
-                                { 0.f, 0.f}, 
-                                0.f, 
-                                WHITE);
+                    // NOTE: Collecting information about the size of every survivor template.
+                    template_complete_boundary = {
+                        .x = template_dest.x,
+                        .y = 0.f,
+                        .width = template_dest.width,
+                        .height = template_dest.height + padding_between_templates,
+                    };
+                    // Template ---------------------------------------- //
 
-                        // NOTE: Collecting information about the size of every survivor template.
-                        template_complete_boundary = {
-                            .x = template_dest.x,
-                            .y = 0.f,
-                            .width = template_dest.width,
-                            .height = template_dest.height + padding_between_templates,
-                        };
-                        // Template ---------------------------------------- //
-
-                        // NOTE: This is the scale between the final template image size and the original template image size.
-                        Vector2 scale = {
-                            template_texture.width  / template_dest.width,
-                            template_texture.height / template_dest.height,
-                        };
+                    // NOTE: This is the scale between the final template image size and the original template image size.
+                    Vector2 scale = {
+                        template_texture.width  / template_dest.width,
+                        template_texture.height / template_dest.height,
+                    };
                        
-                        // Survivor ---------------------------------------- //
-                        float tile_size = number_of_images == 7 ? 256.f : 128.f;
-                        Rectangle survivor_source = {
-                            .x = x * tile_size,
-                            .y = number_of_images == 7 ? 0.f : 256.f,
-                            .width  = tile_size,
-                            .height = tile_size,
+                    // Survivor ---------------------------------------- //
+                    float tile_size = entity_index[index].index < 7 ? 256.f : 128.f;
+
+                    Vector2 survivor_pos = survivors_image_pos[entity_index[index].index];
+                    
+                    Rectangle survivor_source = {
+                        .x = survivor_pos.x,
+                        .y = survivor_pos.y,
+                        .width  = tile_size,
+                        .height = tile_size,
+                    };
+
+                    Vector2 final_survivor_image_size = { 
+                        451.f / scale.x,
+                        437.f / scale.y
+                    };
+
+                    Rectangle survivor_dest = { 
+                        template_dest.x+(91.f / scale.x),
+                        template_dest.y+(77.f / scale.y),
+                        final_survivor_image_size.x,
+                        final_survivor_image_size.y 
+                    };
+
+                    DrawTexturePro(survivors_texture, 
+                            survivor_source,
+                            survivor_dest,
+                            { 0.f, 0.f}, 
+                            0.f, 
+                            WHITE);
+
+                    // Survivor ---------------------------------------- //
+
+                    // Survivor name ----------------------------------- //
+                    std::string survivor_name = survivors_descending_order[index].first;
+
+                    Rectangle final_text = {
+                        600.f / scale.x + template_dest.x,
+                        100.f / scale.y + template_dest.y,
+                        (float)survivor_dest.height*0.3f,
+                        0.f,
+                    };
+
+                    // NOTE: Text plus Long Shadows
+                    for (size_t i = 2; i > 0; i--) {
+                        DrawTextEx(bombardier, 
+                                survivor_name.c_str(),
+                                { final_text.x+(i*3.f), final_text.y+(i*3.f) }, 
+                                final_text.width, 
+                                1.f, 
+                                i < 2 ? WHITE : (Color){0,0,0,200});
+                    }
+                    // Survivor name ----------------------------------- //
+
+                    // Eclipse level ----------------------------------- //
+                    UInt eclipse_level = survivors_descending_order[index].second;
+                    for (size_t i = 0; i < eclipse_level; i++) {
+                        float eclipse_image_size = 128.f;
+
+                        Rectangle eclipse_source = {
+                            .x = i * eclipse_image_size,
+                            .y = i < mastery_level ? eclipse_image_size : 0.f,
+                            .width  = eclipse_image_size,
+                            .height = eclipse_image_size,
                         };
 
-                        Vector2 final_survivor_image_size = { 
-                            451.f / scale.x,
-                            437.f / scale.y
+                        Vector2 final_eclipse_image_size = {
+                            200 / scale.x,
+                            211 / scale.y,                    
                         };
 
-                        Rectangle survivor_dest = { 
-                            template_dest.x+(91.f / scale.x),
-                            template_dest.y+(77.f / scale.y),
-                            final_survivor_image_size.x,
-                            final_survivor_image_size.y 
+                        float eclipse_padding = 61.f / scale.x;
+                        Rectangle eclipse_dest = {
+                            .x = (616.f / scale.x) + ((final_eclipse_image_size.x + eclipse_padding) * i) + template_dest.x,
+                            .y = 295.f / scale.y + template_dest.y,
+                            .width  = final_eclipse_image_size.x,
+                            .height = final_eclipse_image_size.y 
                         };
 
-                        DrawTexturePro(survivors_texture, 
-                                survivor_source,
-                                survivor_dest,
+                        DrawTexturePro(eclipse_texture, 
+                                eclipse_source,
+                                eclipse_dest,
                                 { 0.f, 0.f}, 
                                 0.f, 
                                 WHITE);
-                        // Survivor ---------------------------------------- //
 
-                        // Survivor name ----------------------------------- //
-                        std::string survivor_name = survivors_ordered[survivor_index].first;
-
-                        Rectangle final_text = {
-                            600.f / scale.x + template_dest.x,
-                            100.f / scale.y + template_dest.y,
-                            (float)survivor_dest.height*0.3f,
-                            0.f,
-                        };
-
-                        // NOTE: Text plus Long Shadows
-                        for (size_t i = 2; i > 0; i--) 
-                            DrawTextEx(bombardier, 
-                                    survivor_name.c_str(),
-                                    { final_text.x+(i*3.f), final_text.y+(i*3.f) }, 
-                                    final_text.width, 
-                                    1.f, 
-                                    i < 2 ? WHITE : (Color){0,0,0,200});
-                        // Survivor name ----------------------------------- //
-
-                        // Eclipse level ----------------------------------- //
-                        UInt eclipse_level = survivors_ordered[survivor_index].second;
-                        for (size_t i = 0; i < eclipse_level; i++) {
-                            float eclipse_image_size = 128.f;
-
-                            Rectangle eclipse_source = {
-                                .x = i * eclipse_image_size,
-                                .y = i < mastery_level ? eclipse_image_size : 0.f,
-                                .width  = eclipse_image_size,
-                                .height = eclipse_image_size,
-                            };
-
-                            Vector2 final_eclipse_image_size = {
-                                200 / scale.x,
-                                211 / scale.y,                    
-                            };
-
-                            float eclipse_padding = 61.f / scale.x;
-                            Rectangle eclipse_dest = {
-                                .x = (616.f / scale.x) + ((final_eclipse_image_size.x + eclipse_padding) * i) + template_dest.x,
-                                .y = 295.f / scale.y + template_dest.y,
-                                .width  = final_eclipse_image_size.x,
-                                .height = final_eclipse_image_size.y 
-                            };
-
-                            DrawTexturePro(eclipse_texture, 
-                                    eclipse_source,
-                                    eclipse_dest,
-                                    { 0.f, 0.f}, 
-                                    0.f, 
-                                    WHITE);
-
-                            eclipse_level_collision_entities.emplace_back((Eclipse_Level_Collsion_Entity){eclipse_dest, (UInt)i});
-                        }
-                        // Eclipse level ----------------------------------- //
+                        eclipse_level_collision_entities.emplace_back((Eclipse_Level_Collsion_Entity){eclipse_dest, (UInt)i});
                     }
+                    // Eclipse level ----------------------------------- //
                 }
 
                 // Modifers ------------------------------------ //
@@ -792,6 +839,7 @@ int main() {
                             mastery_level = 0;
                             time_until_next_update = cooldown_time_for_reloading;
                             order_and_correct_survivor_list(survivors, survivors_ordered, eclipse_level_sum, mastery_level);
+                            entity_index = survivors_ordered_by_eclipse_level(survivors_ordered, survivors_descending_order);
 
                             reloaded = 1;
                         }
