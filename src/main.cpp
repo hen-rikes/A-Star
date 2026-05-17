@@ -326,6 +326,14 @@ int main() {
         { 0.f, 256.f }, { 128.f, 256.f }, { 256.f, 256.f }, { 384.f, 256.f }, { 512.f, 256.f }, { 640.f, 256.f }, { 768.f, 256.f }, { 896.f, 256.f }, { 1024.f, 256.f }, { 1152.f, 256.f }, { 1280.f, 256.f }, 
     };
 
+    // Reload Animation Setup ---------------------------- //
+    int animation_step        = 0;
+    int animation_total_steps = 360;
+    float animation_speed     = 0.0001f;
+    float animation_duration  = animation_speed;
+    bool is_animation_done    = true;
+    // Reload Animation Setup ---------------------------- //
+
     SetTargetFPS(60);
     while (!WindowShouldClose()) {
         UpdateWindowSize(width, height);
@@ -789,6 +797,17 @@ int main() {
                 // Scroll Bar -------------------------------------------------- //
 
                 // Reload ------------------------------------------------------ //
+                if (!is_animation_done) animation_duration -= GetFrameTime();
+                if (animation_duration < 0.f) {
+                    animation_step += 12.6;
+                    animation_duration = animation_speed;
+
+                    if (animation_step > animation_total_steps-1) {
+                        animation_step = 0;
+                        is_animation_done = true;
+                    }
+                }
+
                 reloaded_time -= GetFrameTime();
                 if (reloaded_time <= 0.f) {
                     reloaded = 0;
@@ -830,6 +849,8 @@ int main() {
                     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
                         eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
 
+                        is_animation_done = false;
+
                         if (eclipse_info_xml_file_state == COULD_NOT_OPEN_FILE) {
                             time_until_next_update = cooldown_time_for_reloading;
                             state = NO_FILE_STATE;
@@ -866,9 +887,9 @@ int main() {
 
                 DrawTexturePro(reload_texture, 
                         reload_source,
-                        {reload_pos.x, reload_pos.y, reload_size, reload_size},
-                        {0.f, 0.f}, 
-                        0.f, 
+                        { reload_pos.x + reload_size/2.f, reload_pos.y + reload_size/2.f, reload_size, reload_size },
+                        { reload_size/2.f, reload_size/2.f }, 
+                        animation_step, 
                         WHITE);
 
                 DrawTextPro(bombardier, 

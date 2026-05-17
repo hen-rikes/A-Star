@@ -1,6 +1,6 @@
 @echo off
 
-set CFLAGS=-O1 -Wall -Wextra -Wunused --std=c++17
+set CFLAGS=-Wall -Wextra -Wunused --std=c++17
 set LIBS=-lraylib -lopengl32 -lgdi32 -lwinmm 
 
 g++ %CFLAGS% -I include/ -c src/main.cpp -o objs/main.o
