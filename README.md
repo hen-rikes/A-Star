@@ -3,7 +3,7 @@
 This program was made with the intention to be a better visualization of your progress in the alternate game mode: [Eclipse](https://riskofrain2.fandom.com/wiki/Alternate_Game_Modes#Eclipse) in the game: [Risk Of Rain 2](https://riskofrain.2k.com/).
 
 ![Main interface of the program](./GitHubImageMAINSTATE.png)
-## How to Use
+## How to Set Up
 
 ![Interface when the xml file was not found](./GitHubImageNOFILESTATE.png)
 
@@ -13,6 +13,8 @@ While at that screen, just drop you xml file containing your eclipse achievement
 
 You should be able to find your personal xml file used for the game in that location:\
     ***[YOUR STEAM INSTALLATION LOCATION]\userdata\[YOUR USER ID]\632360\remote\UserProfiles***
+
+## How to Use
 
 In the main screen of the program you will see the list of all the survivors available in the game.
 You can visualize the modifier effect of each individual eclipse level by passing your mouse cursor above it.\
