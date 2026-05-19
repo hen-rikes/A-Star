@@ -18,8 +18,10 @@ You should be able to find your personal xml file used for the game in that loca
 
 In the main screen of the program you will see the list of all the survivors available in the game.
 You can visualize the modifier effect of each individual eclipse level by passing your mouse cursor above it.\
+
 The program will automatically reload after the countdown or on the press of
 the "Reload" button, if it detects any changes in the file, it will update all information accordingly.\
+
 The survivor list is based around the eclipse level, the default order is in an ascending fashion, however, you can modify it wherever you wish by simply pressing the "Ascending/Descending" button.
 
 ## Features
