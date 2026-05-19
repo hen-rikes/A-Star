@@ -49,8 +49,9 @@ The command "windres" is used to read the icon and output it in a binary format,
 ## Credits
 
 All the survivor images were taken from the [wiki](https://riskofrain2.fandom.com/wiki/Survivors) hosted on the website [Fandom](https://www.fandom.com/).\
-You can find the icon used as the base for the "reload button" here: <a href="https://www.flaticon.com/free-icons/reload" title="reload icons">Reload icons created by Royyan Wijaya - Flaticon</a>
-The font is called "BOMBARDIER", you can find it here: https://www.dafont.com/bombardier.font
+Here it is the link for the icon used as the base for the "reload button" here: <a href="https://www.flaticon.com/free-icons/reload" title="reload icons">Reload icons created by Royyan Wijaya - Flaticon</a>\
+Here it is the link for the icon used as the base for the "Ascending/Descending" here: <a href="https://www.flaticon.com/free-icons/ascending" title="ascending icons">Ascending icons created by yaicon - Flaticon</a>\
+The font used for all the texts is called "BOMBARDIER", you can find it here: https://www.dafont.com/bombardier.font
 
 ## Raylib 
 
@@ -58,7 +59,7 @@ Please check this amazing library made by Ramon (Ray) Santamaria: [Raylib](https
 It was used extensively for this project.
 
 ## Platforms
-At the moment, Windows is the only platform fully supported. 
+At the moment, Windows is the only platform fully supported! 
 
 >[!NOTE]
 >AI was used in the making of some of the images. :vomiting_face:\

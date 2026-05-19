@@ -946,7 +946,7 @@ int main() {
 
             float sort_up_size = template_complete_boundary.x*0.6f;
             Rectangle sort_up_dest = {
-                .x = width * 0.004f,
+                .x = width * 0.003f,
                 .y = sort_up_dest.x,
                 .width  = sort_up_size,
                 .height = sort_up_size,
@@ -957,7 +957,7 @@ int main() {
                 float difference_in_size = new_sort_up_size - sort_up_size;
 
                 sort_up_dest = {
-                    .x = width * 0.004f - difference_in_size/2.f,
+                    .x = width * 0.003f - difference_in_size/2.f,
                     .y = sort_up_dest.x - difference_in_size/2.f,
                     .width  = new_sort_up_size,
                     .height = new_sort_up_size,
