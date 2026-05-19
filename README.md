@@ -14,7 +14,11 @@ While at that screen, just drop you xml file containing your eclipse achievement
 You should be able to find your personal xml file used for the game in that location:\
     ***[YOUR STEAM INSTALLATION LOCATION]\userdata\[YOUR USER ID]\632360\remote\UserProfiles***
 
-In the main screen you are able to scroll down or up to visualize all the survivors, see the description of each indivial eclipse modfier and also press the button "Reload" or wait the countdown so the program can update its information based on your file.
+In the main screen of the program you will see the list of all the survivors available in the game.
+You can visualize the modifier effect of each individual eclipse level by passing your mouse cursor above it.\
+The program will automatically reload after the countdown or on the press of
+the "Reload" button, if it detects any changes in the file, it will update all information accordingly.\
+The survivor list is based around the eclipse level, the default order is in an ascending fashion, however, you can modify it wherever you wish by simply pressing the "Ascending/Descending" button.
 
 ## Features
 
