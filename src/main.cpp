@@ -791,9 +791,9 @@ int main() {
             switch (mastery_level) {
                 break; case 0: mastery_relative_position = { 328.f, 310.f };
                 break; case 1: mastery_relative_position = { 300.f, 318.f };
-                break; case 2: mastery_relative_position = { 330.f, 304.f };
-                break; case 3: mastery_relative_position = { 330.f, 310.f };
-                break; case 4: mastery_relative_position = { 290.f, 310.f };
+                break; case 2: mastery_relative_position = { 328.f, 304.f };
+                break; case 3: mastery_relative_position = { 328.f, 312.f };
+                break; case 4: mastery_relative_position = { 287.f, 315.f };
                 break; case 6: mastery_relative_position = { 330.f, 314.f };
                 break; case 8: mastery_relative_position = { 330.f, 314.f };
             }
