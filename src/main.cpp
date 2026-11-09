@@ -97,7 +97,10 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
 
         end_of_survivor_name = file_content.find(".", identifier_pos_plus_identifier_length);
 
-        survivor_map[file_content.substr(identifier_pos_plus_identifier_length, end_of_survivor_name - identifier_pos_plus_identifier_length)] = std::stoll(file_content.substr(end_of_survivor_name+1, 1));
+        std::string survivor_name = file_content.substr(identifier_pos_plus_identifier_length, end_of_survivor_name - identifier_pos_plus_identifier_length);
+        UInt survivor_eclipse_level = std::stoll(file_content.substr(end_of_survivor_name+1, 1));
+
+        survivor_map[survivor_name] = survivor_eclipse_level;
     }
 
     delete[] buffer;
@@ -106,7 +109,8 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
 }
 
 void order_and_correct_survivor_list(const std::map<std::string, UInt>& survivors, std::vector<std::pair<std::string, UInt>>& survivors_ordered_from_image_file, UInt& eclipse_level_sum, UInt& mastery_level) {
-    UInt survivor_order[18] = { 15, 18, 8, 4, 17, 9, 2, 5, 14, 6, 13, 7, 1, 12, 10, 3, 11, 16 }; // NOTE: This order is based on the sorted survivors plus their position on the survivors.png
+    // NOTE: This order is needed because "map" sort the values by default. Acolyte for example is the "number 19" in the image but is the first one on the sorted map. 
+    UInt survivor_order[] = { 19, 15, 18, 8, 4, 17, 9, 2, 20, 5, 14, 6, 13, 7, 1, 12, 10, 3, 11, 16 }; 
 
     std::map<std::string, std::string> correct_names = {
         { "Toolbot", "MUL-T" },
@@ -118,6 +122,7 @@ void order_and_correct_survivor_list(const std::map<std::string, UInt>& survivor
         { "VoidSurvivor", "Void Fiend" },
         { "DroneTech", "Operator" },
         { "Bandit2", "Bandit" },
+        { "Enforcer2", "Enforcer" },
     };
 
     int index = 0;
@@ -249,8 +254,8 @@ int main() {
         "./images/Icons/SortUP.png",
         "./images/Icons/SortDOWN.png",
     };
-
     size_t texture_count = sizeof(textures_paths)/sizeof(std::string);
+
     UInt texture_index = 0;
     bool are_all_textures_loaded = false;
 
@@ -302,6 +307,8 @@ int main() {
         {"Chef", 0},
         {"DroneTech", 0},
         {"Drifter", 0},
+        {"Acolyte", 0},
+        {"Enforcer2", 0},
     };
 
     std::string xml_file = ""; 
@@ -314,8 +321,8 @@ int main() {
     } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) state = LOADING_STATE;
 
     // MainState Setup -------------------------------- //
-    std::vector<std::pair<std::string, UInt>> survivors_ordered_from_image_file{ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, };
-    survivors_ordered_from_image_file.reserve(18);
+    std::vector<std::pair<std::string, UInt>> survivors_ordered_from_image_file{ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+    survivors_ordered_from_image_file.reserve(survivors.size());
 
     float cooldown_time_for_reloading = 80.f;
     float time_until_next_update = cooldown_time_for_reloading;
@@ -337,19 +344,21 @@ int main() {
     Rectangle template_complete_boundary{};
     Vector2 mouse_wheel = GetMouseWheelMoveV();
     Vector2 mouse_pos = GetMousePosition();
-    float acceleration = 800.f;
+    float acceleration = 880.f;
     float velocity = 0.f;
     float max_velocity = 70.f;
     float friction = 220.f;
     int direction = 0.f;
     // MainState Setup -------------------------------- //
 
+    // Survivor Setup -------------------------------- //
     std::vector<std::pair<std::string, UInt>> survivors_ordered;
     std::vector<Entity_Index> entity_index{};
     Vector2 survivors_image_pos[] = {
         { 0.f, 0.f }, { 256.f, 0.f, }, { 512.f, 0.f, }, { 768.f, 0.f, }, { 1024.f, 0.f, }, { 1280.f, 0.f, }, { 1536.f, 0.f, },
-        { 0.f, 256.f }, { 128.f, 256.f }, { 256.f, 256.f }, { 384.f, 256.f }, { 512.f, 256.f }, { 640.f, 256.f }, { 768.f, 256.f }, { 896.f, 256.f }, { 1024.f, 256.f }, { 1152.f, 256.f }, { 1280.f, 256.f }, 
+        { 0.f, 256.f }, { 128.f, 256.f }, { 256.f, 256.f }, { 384.f, 256.f }, { 512.f, 256.f }, { 640.f, 256.f }, { 768.f, 256.f }, { 896.f, 256.f }, { 1024.f, 256.f }, { 1152.f, 256.f }, { 1280.f, 256.f }, { 1408.f, 256.f }, { 1536.f, 256.f }
     };
+    // Survivor Setup -------------------------------- //
 
     // Reload Animation Setup ---------------------------- //
     int animation_step        = 0;
@@ -358,6 +367,7 @@ int main() {
     float animation_duration  = animation_speed;
     bool is_animation_done    = true;
     // Reload Animation Setup ---------------------------- //
+
 
     SetTargetFPS(60);
     while (!WindowShouldClose()) {
@@ -446,8 +456,7 @@ int main() {
                 .zoom = 1.f,
             };
         } else if (state == MAIN_STATE) {
-            // NOTE: We load the info from the file once at startup.
-            if (load_eclipse_info_from_xml_file_once) {
+            if (load_eclipse_info_from_xml_file_once) { // NOTE: We load the info from the file once at startup.
                 eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
                 load_eclipse_info_from_xml_file_once = false;
 
@@ -746,7 +755,8 @@ int main() {
 
             // Completion Percent ------------------------------------------ //
             UInt completion_percent = normalize<float>((float)eclipse_level_sum, 0, survivors_ordered_from_image_file.size()*8) * 100.f;
-            const char* completion_percent_text = TextFormat("%d\%%", completion_percent); 
+            //const char* completion_percent_text = TextFormat("%d\%%", completion_percent); 
+            const char* completion_percent_text = "100%";
 
             float completion_percent_fontsize = completion_dest.height*0.55f;
             Vector2 completion_percent_size = MeasureTextEx(bombardier, completion_percent_text, completion_percent_fontsize, 1.f);
