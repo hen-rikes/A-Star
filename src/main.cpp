@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
 
 typedef unsigned int UInt;
 
@@ -315,9 +316,9 @@ int main() {
     std::string file_path = "./xml_path.txt";
     UInt read_file_state = read_file(file_path, xml_file);
     if (read_file_state == COULD_NOT_OPEN_FILE) {
-            std::cout << "Could not open file!\n";
-            state = LOADING_STATE;
-            xml_file = "";
+        std::cout << "Could not open file!\n";
+        state = LOADING_STATE;
+        xml_file = "";
     } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) state = LOADING_STATE;
 
     // MainState Setup -------------------------------- //
@@ -487,6 +488,12 @@ int main() {
             time_until_next_update -= GetFrameTime();
             if (time_until_next_update <= 0.f) {
                 time_until_next_update = cooldown_time_for_reloading;
+
+                if (!std::filesystem::exists(file_path)) {
+                    time_until_next_update = cooldown_time_for_reloading;
+                    state = NO_FILE_STATE;
+                    continue;
+                }
 
                 eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
                 if (eclipse_info_xml_file_state == COULD_NOT_OPEN_FILE) {
@@ -900,7 +907,12 @@ int main() {
 
             if (CheckCollisionPointRec(mouse_pos, {reload_pos.x, reload_pos.y, reload_size, reload_size})) {
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    // TODO: load from file.
+                    if (!std::filesystem::exists(file_path)) {
+                        time_until_next_update = cooldown_time_for_reloading;
+                        state = NO_FILE_STATE;
+                        continue;
+                    }
+
                     eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
 
                     is_animation_done = false;
