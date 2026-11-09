@@ -793,7 +793,7 @@ int main() {
                 break; case 1: mastery_relative_position = { 300.f, 318.f };
                 break; case 2: mastery_relative_position = { 328.f, 304.f };
                 break; case 3: mastery_relative_position = { 328.f, 312.f };
-                break; case 4: mastery_relative_position = { 287.f, 315.f };
+                break; case 4: mastery_relative_position = { 290.f, 315.f };
                 break; case 6: mastery_relative_position = { 330.f, 314.f };
                 break; case 8: mastery_relative_position = { 330.f, 314.f };
             }
@@ -875,7 +875,7 @@ int main() {
             };
 
             float reload_size = template_complete_boundary.x*0.8f;
-            const char* reloaded_text = TextFormat("%s", reloaded ? "Reloaded!" : "Reload!");
+            const char* reloaded_text = TextFormat("%s", reloaded ? "Reloaded!" : "Reload");
             float reloaded_text_fontsize = reload_size*0.32f;
 
             Vector2 reload_pos = {
@@ -885,7 +885,7 @@ int main() {
 
             Vector2 reloaded_text_size = MeasureTextEx(bombardier, reloaded_text, reloaded_text_fontsize, 0.f);
             Vector2 reloaded_text_pos = { 
-                .x = reload_pos.x + reload_size/2.f - reloaded_text_size.x/2.f,
+                .x = reload_pos.x + reload_size/2.f - reloaded_text_size.x/2.f + 1.f,
                 .y = height-reloaded_text_fontsize,
             };
 
@@ -900,6 +900,7 @@ int main() {
 
             if (CheckCollisionPointRec(mouse_pos, {reload_pos.x, reload_pos.y, reload_size, reload_size})) {
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    // TODO: load from file.
                     eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
 
                     is_animation_done = false;
