@@ -727,6 +727,7 @@ int main() {
                     WHITE);
             // Completion Image -------------------------------------------- //
 
+
             // Completion Text --------------------------------------------- //
             Vector2 completion_scale = {
                 completion_texture.width / completion_dest.width,
@@ -753,17 +754,18 @@ int main() {
                         i < 2 ? WHITE : (Color){0,0,0,200});
             // Completion Text --------------------------------------------- //
 
+
             // Completion Percent ------------------------------------------ //
             UInt completion_percent = normalize<float>((float)eclipse_level_sum, 0, survivors_ordered_from_image_file.size()*8) * 100.f;
-            //const char* completion_percent_text = TextFormat("%d\%%", completion_percent); 
-            const char* completion_percent_text = "100%";
+            const char* completion_percent_text = TextFormat("%d\%%", completion_percent); 
 
-            float completion_percent_fontsize = completion_dest.height*0.55f;
+            float completion_percent_fontsize = completion_dest.height*0.35f + completion_dest.width*0.04f;
             Vector2 completion_percent_size = MeasureTextEx(bombardier, completion_percent_text, completion_percent_fontsize, 1.f);
 
+
             Vector2 completion_percent_pos = {
-                .x = (1030.f / completion_scale.x + completion_dest.x) + ((690.f / completion_scale.x)/2.f) - (completion_percent_size.x/2.f),
-                .y = (155.f / completion_scale.y + completion_dest.y) + ((309.f / completion_scale.y)/2.f) - (completion_percent_size.y/2.f) + 3.f,
+                .x = completion_dest.x + (1347.f / completion_scale.x) - (completion_percent_size.x / 2.f),
+                .y = completion_dest.y + (315.f / completion_scale.y) - (completion_percent_size.y / 2.f),
             };
 
             // NOTE: Text plus Long Shadows
@@ -775,6 +777,7 @@ int main() {
                         1.f, 
                         i < 2 ? WHITE : (Color){0,0,0,200});
             // Completion Percent ------------------------------------------ //
+
 
             // Completion Mastery ------------------------------------------ //
             Vector2 numbers_image_size = {
