@@ -584,6 +584,7 @@ int main() {
 
                 // Survivor ---------------------------------------- //
 
+
                 // Survivor name ----------------------------------- //
                 std::string survivor_name = survivors_ordered[index].first;
 
@@ -604,6 +605,7 @@ int main() {
                             i < 2 ? WHITE : (Color){0,0,0,200});
                 }
                 // Survivor name ----------------------------------- //
+
 
                 // Eclipse level ----------------------------------- //
                 UInt eclipse_level = survivors_ordered[index].second;
@@ -785,6 +787,17 @@ int main() {
                 .y = (float)numbers_texture.height,
             };
 
+            Vector2 mastery_relative_position = { 330.f, 323.f };
+            switch (mastery_level) {
+                break; case 0: mastery_relative_position = { 328.f, 310.f };
+                break; case 1: mastery_relative_position = { 300.f, 318.f };
+                break; case 2: mastery_relative_position = { 330.f, 304.f };
+                break; case 3: mastery_relative_position = { 330.f, 310.f };
+                break; case 4: mastery_relative_position = { 290.f, 310.f };
+                break; case 6: mastery_relative_position = { 330.f, 314.f };
+                break; case 8: mastery_relative_position = { 330.f, 314.f };
+            }
+
             Rectangle numbers_source = {
                 .x = mastery_level * numbers_image_size.x,
                 .y = 0.f,
@@ -798,8 +811,8 @@ int main() {
             };
 
             Rectangle numbers_dest = {
-                .x = (1729.f / completion_scale.x + completion_dest.x) + ((330.f / completion_scale.x)/2.f) - (numbers_size.x/2.f),
-                .y = (179.f / completion_scale.y + completion_dest.y) + ((323.f / completion_scale.y)/2.f) - (numbers_size.y/2.f),
+                .x = (1729.f / completion_scale.x + completion_dest.x) + ((mastery_relative_position.x / completion_scale.x)/2.f) - (numbers_size.x/2.f),
+                .y = (179.f / completion_scale.y + completion_dest.y) + ((mastery_relative_position.y / completion_scale.y)/2.f) - (numbers_size.y/2.f),
                 .width  = numbers_size.x,
                 .height = numbers_size.y,
             };
@@ -811,6 +824,7 @@ int main() {
                     0.f, 
                     WHITE);
             // Completion Mastery ------------------------------------------ //
+
 
             // Scroll Bar -------------------------------------------------- //
             float camera_target_y_normalized = normalize(camera.target.y, template_complete_boundary.y, max_camera_y);
@@ -833,6 +847,7 @@ int main() {
                     1.f, 
                     20, {170, 170, 170, 180});
             // Scroll Bar -------------------------------------------------- //
+
 
             // Reload ------------------------------------------------------ //
             if (!is_animation_done) animation_duration -= GetFrameTime();
@@ -949,6 +964,7 @@ int main() {
                     WHITE);
             // Reload ------------------------------------------------------ //
 
+
             // Sort ------------------------------------------------------ //
             Rectangle sort_up_source = {
                 .x = 0.f,
@@ -992,7 +1008,6 @@ int main() {
 
             DrawTexturePro(textures[sort_texture_index], sort_up_source, sort_up_dest, { 0.f, 0.f }, 0.f, WHITE);
             // Sort ------------------------------------------------------ //
-
             }
 
         EndDrawing();
