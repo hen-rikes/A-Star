@@ -783,7 +783,7 @@ int main() {
 
             // Completion Mastery ------------------------------------------ //
             Vector2 numbers_image_size = {
-                .x = 256.f,//43.f,
+                .x = 256.f,
                 .y = (float)numbers_texture.height,
             };
 
@@ -793,7 +793,7 @@ int main() {
                 break; case 1: mastery_relative_position = { 300.f, 318.f };
                 break; case 2: mastery_relative_position = { 328.f, 304.f };
                 break; case 3: mastery_relative_position = { 328.f, 312.f };
-                break; case 4: mastery_relative_position = { 290.f, 315.f };
+                break; case 4: mastery_relative_position = { 294.f, 315.f };
                 break; case 6: mastery_relative_position = { 330.f, 314.f };
                 break; case 8: mastery_relative_position = { 330.f, 314.f };
             }

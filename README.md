@@ -1,6 +1,7 @@
 ## A-Star
 
-This program was made with the intention to be a better visualization of your progress in the alternate game mode: [Eclipse](https://riskofrain2.fandom.com/wiki/Alternate_Game_Modes#Eclipse) in the game: [Risk Of Rain 2](https://riskofrain.2k.com/).
+This program was made with the intention to be a better visualization of your progress in the alternate game mode: [Eclipse](https://riskofrain2.wiki.gg/wiki/Eclipse). \
+For the game: [Risk Of Rain 2](https://riskofrain.2k.com/).
 
 ![Main interface of the program](./GitHubImageMAINSTATE.png)
 ## How to Set Up
