@@ -56,7 +56,7 @@ The command "windres" is used to read the icon and output it in a binary format,
 
 ## Credits
 
-All the survivor images were taken from the [wiki](https://riskofrain2.fandom.com/wiki/Survivors) hosted on the website [Fandom](https://www.fandom.com/).\
+All the survivor images were taken from the [wiki](https://riskofrain2.wiki.gg/wiki/Survivors) hosted on the website [wiki.gg](https://www.wiki.gg).\
 The link for the icon used as base for the "reload button" here: <a href="https://www.flaticon.com/free-icons/reload" title="reload icons">Reload icons created by Royyan Wijaya - Flaticon</a>\
 The link for the icon used as base for the "Ascending/Descending" here: <a href="https://www.flaticon.com/free-icons/ascending" title="ascending icons">Ascending icons created by yaicon - Flaticon</a>\
 The font used for all the texts is called "BOMBARDIER", you can find it here: https://www.dafont.com/bombardier.font
