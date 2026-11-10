@@ -325,7 +325,7 @@ int main() {
     std::vector<std::pair<std::string, UInt>> survivors_ordered_from_image_file{ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
     survivors_ordered_from_image_file.reserve(survivors.size());
 
-    float cooldown_time_for_reloading = 80.f;
+    float cooldown_time_for_reloading = 80.f; 
     float time_until_next_update = cooldown_time_for_reloading;
     UInt eclipse_level_sum = 0;
     UInt mastery_level = 0;
@@ -486,7 +486,7 @@ int main() {
             mouse_wheel = GetMouseWheelMoveV();
 
             time_until_next_update -= GetFrameTime();
-            if (time_until_next_update <= 0.f) {
+            if (time_until_next_update < 1.f) {
                 time_until_next_update = cooldown_time_for_reloading;
 
                 if (!std::filesystem::exists(file_path)) {
@@ -506,6 +506,18 @@ int main() {
 
                     order_and_correct_survivor_list(survivors, survivors_ordered_from_image_file, eclipse_level_sum, mastery_level);
                     entity_index = survivors_ordered_by_eclipse_level(survivors_ordered_from_image_file, survivors_ordered, Survivor_Order::Ascending);
+
+                    is_animation_done = false;
+                    reloaded = 1;
+                    if (animation_duration < 0.f) {
+                        animation_step += 12.6;
+                        animation_duration = animation_speed;
+
+                        if (animation_step > animation_total_steps-1) {
+                            animation_step = 0;
+                            is_animation_done = true;
+                        }
+                    }
                 }
             } 
 
@@ -858,6 +870,7 @@ int main() {
 
             // Reload ------------------------------------------------------ //
             if (!is_animation_done) animation_duration -= GetFrameTime();
+
             if (animation_duration < 0.f) {
                 animation_step += 12.6;
                 animation_duration = animation_speed;
@@ -905,8 +918,9 @@ int main() {
                 reload_pos.y + reload_size/2.f - time_size.y/2.f
             };
 
+            // COOLDOWN
             if (CheckCollisionPointRec(mouse_pos, {reload_pos.x, reload_pos.y, reload_size, reload_size})) {
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && is_animation_done) {
                     if (!std::filesystem::exists(file_path)) {
                         time_until_next_update = cooldown_time_for_reloading;
                         state = NO_FILE_STATE;
@@ -1033,3 +1047,9 @@ int main() {
 
     return 0;
 }
+
+
+// TODO:
+// 1(COOLDOWN). When the cooldown get to zero it should do the animation of realoading and also write reload on the screen. The button should get locked so only pressing or cooldown can do it at any given time.
+// 2. Handle the the xml file does not have a dlc survivor.
+
