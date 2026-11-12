@@ -35,6 +35,8 @@ struct Eclipse_Level_Collsion_Entity {
 #define IS_A_VALID_XML           2 
 #define IS_NOT_A_VALID_XML       3 
 
+#define LOCKED_CHARACTER         404 
+
 #define LOADING_STATE            4
 #define NO_FILE_STATE            5
 #define MAIN_STATE               6
@@ -80,10 +82,48 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
 
     buffer = new char[file_length];
     eclipse_file.read(buffer, file_length);
-
     eclipse_file.close();
 
     std::string file_content = buffer;
+
+    std::vector<std::string> unlocked_characters = { "Commando", "Huntress", };
+    {
+        const size_t number_of_characters_unlocked_by_ownership = 4;
+        const std::string unlocked_by_ownership[number_of_characters_unlocked_by_ownership] = { "Enforcer2", "DroneTech", "Railgunner", "Seeker", };
+
+        const std::string bodyNameTag = "bodyName=";
+        for (size_t i = 0; i < number_of_characters_unlocked_by_ownership; i++) {
+            std::string full_tag = TextFormat("%s\"%sBody\"", bodyNameTag.c_str(), unlocked_by_ownership[i].c_str());
+
+            size_t res = file_content.find(full_tag, 0);
+            if (res != std::string::npos) unlocked_characters.emplace_back(unlocked_by_ownership[i]);
+            else  continue; 
+        }
+    }
+
+    {
+        std::string character_identifier = "Characters.";
+        size_t character_identifier_pos = 0;
+
+        while (1) {
+            size_t character_identifier_index = file_content.find(character_identifier, character_identifier_pos);
+            if (character_identifier_index == std::string::npos || character_identifier_index >= file_length) break;
+
+            size_t character_name_start_at = character_identifier_index + character_identifier.size();
+            size_t end_of_survivor_name = file_content.find("</u", character_name_start_at);
+            size_t character_name_length = end_of_survivor_name - character_name_start_at;
+
+            std::string survivor_name = file_content.substr(character_name_start_at, character_name_length);
+            unlocked_characters.emplace_back(survivor_name);
+
+            character_identifier_pos = character_identifier_index+1;
+        }
+    }
+
+    std::map<std::string, std::string> correct_names = {
+        {"Engi", "Engineer"},
+        {"Merc", "Mercenary"},
+    };
 
     std::string identifier = "Eclipse.";
     size_t identifier_pos = 0;
@@ -99,9 +139,21 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
         end_of_survivor_name = file_content.find(".", identifier_pos_plus_identifier_length);
 
         std::string survivor_name = file_content.substr(identifier_pos_plus_identifier_length, end_of_survivor_name - identifier_pos_plus_identifier_length);
+
+        bool survivor_is_locked = false;
+        for (size_t j = 0; j < unlocked_characters.size(); j++) {
+            auto corrected_name_if_needed = correct_names.find(survivor_name);
+            const std::string& final_name = (corrected_name_if_needed == correct_names.end()) ? survivor_name : corrected_name_if_needed->second; 
+            if (final_name == unlocked_characters[j]) {
+                survivor_is_locked = false;
+                break;
+            } else {
+                survivor_is_locked = true;
+            }
+        }
         UInt survivor_eclipse_level = std::stoll(file_content.substr(end_of_survivor_name+1, 1));
 
-        survivor_map[survivor_name] = survivor_eclipse_level;
+        survivor_map[survivor_name] = survivor_is_locked ? LOCKED_CHARACTER : survivor_eclipse_level;
     }
 
     delete[] buffer;
@@ -129,16 +181,22 @@ void order_and_correct_survivor_list(const std::map<std::string, UInt>& survivor
     int index = 0;
     for (const auto& [name, e_level] : survivors) {
         std::string temp_name = correct_names[name] != "" ? correct_names[name] : name;
-        survivors_ordered_from_image_file[survivor_order[index]-1] = std::make_pair(temp_name, e_level > 0 ? e_level - 1 : 0);
+        //survivors_ordered_from_image_file[survivor_order[index]-1] = std::make_pair(temp_name, e_level > 0 ? e_level : 0);
+        survivors_ordered_from_image_file[survivor_order[index]-1] = std::make_pair(temp_name, e_level);
         index++;
     }
 
     eclipse_level_sum = 0;
-    mastery_level = 8;
+    mastery_level = 9; 
     for (const auto& [name, e_level] : survivors_ordered_from_image_file) {
+        if (e_level == LOCKED_CHARACTER) continue;
+
         if (e_level < mastery_level) mastery_level = e_level;
-        eclipse_level_sum += e_level;
+
+        eclipse_level_sum += e_level-1;
     }
+
+    mastery_level = mastery_level == 0 ? 0 : mastery_level - 1;
 }
 
 std::string save_to_file(const std::string& file_path) {
@@ -150,7 +208,7 @@ std::string save_to_file(const std::string& file_path) {
     if (xml_file_state == IS_A_VALID_XML) {
         std::fstream xml_file("./xml_path.txt", std::fstream::out);
         if (!xml_file) return "";
-
+        
         xml_file.write(file_path.c_str(), file_path.size());
 
         xml_file.close();
@@ -166,21 +224,12 @@ UInt read_file(const std::string& file_path, std::string& xml_file) {
     std::ifstream file(file_path);
     if (!file) return COULD_NOT_OPEN_FILE;
 
-    char* buffer{};
-    size_t file_length{};
-
-    file.seekg(0, file.end);
-    file_length = file.tellg();
-    file.seekg(0, file.beg);
-
-    buffer = new char[file_length];
-    file.read(buffer, file_length);
-
-    file.close();
+    char* buffer = LoadFileText(file_path.c_str());
+    if (buffer == nullptr) return COULD_NOT_OPEN_FILE;
 
     xml_file = buffer;
 
-    delete[] buffer;
+    UnloadFileText(buffer);
 
     return FILE_OPENED_SUCCESSFULLY;
 }
@@ -319,7 +368,9 @@ int main() {
         std::cout << "Could not open file!\n";
         state = LOADING_STATE;
         xml_file = "";
-    } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) state = LOADING_STATE;
+    } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) {
+        state = LOADING_STATE;
+    }
 
     // MainState Setup -------------------------------- //
     std::vector<std::pair<std::string, UInt>> survivors_ordered_from_image_file{ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
@@ -417,6 +468,8 @@ int main() {
         } else if (state == NO_FILE_STATE) {
             if (IsFileDropped()) {
                 FilePathList files = LoadDroppedFiles();
+                if (files.count == 0) std::cout << "There is zero files\n";
+
                 std::string xml_file_path = files.paths[0];
 
                 std::string temp_file_path = save_to_file(xml_file_path);
@@ -424,8 +477,20 @@ int main() {
                 else {
                     state = MAIN_STATE;
                     xml_file = temp_file_path;
+                    load_eclipse_info_from_xml_file_once = false;
 
                     eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
+                    if (eclipse_info_xml_file_state == COULD_NOT_OPEN_FILE) {
+                        state = NO_FILE_STATE;
+                        continue;
+                    } else if (eclipse_info_xml_file_state == FILE_OPENED_SUCCESSFULLY) {
+                        eclipse_level_sum = 0;
+                        mastery_level = 0;
+
+                        order_and_correct_survivor_list(survivors, survivors_ordered_from_image_file, eclipse_level_sum, mastery_level);
+                        entity_index = survivors_ordered_by_eclipse_level(survivors_ordered_from_image_file, survivors_ordered, survivor_order);
+                    }
+
                 }
 
                 UnloadDroppedFiles(files);
@@ -625,40 +690,41 @@ int main() {
                 }
                 // Survivor name ----------------------------------- //
 
-
                 // Eclipse level ----------------------------------- //
                 UInt eclipse_level = survivors_ordered[index].second;
-                for (size_t i = 0; i < eclipse_level; i++) {
-                    float eclipse_image_size = 128.f;
+                if (eclipse_level != LOCKED_CHARACTER && eclipse_level != 0) {
+                    for (size_t i = 0; i < eclipse_level-1; i++) {
+                        float eclipse_image_size = 128.f;
 
-                    Rectangle eclipse_source = {
-                        .x = i * eclipse_image_size,
-                        .y = i < mastery_level ? eclipse_image_size : 0.f,
-                        .width  = eclipse_image_size,
-                        .height = eclipse_image_size,
-                    };
+                        Rectangle eclipse_source = {
+                            .x = i * eclipse_image_size,
+                            .y = i < mastery_level ? eclipse_image_size : 0.f,
+                            .width  = eclipse_image_size,
+                            .height = eclipse_image_size,
+                        };
 
-                    Vector2 final_eclipse_image_size = {
-                        200 / scale.x,
-                        211 / scale.y,                    
-                    };
+                        Vector2 final_eclipse_image_size = {
+                            200 / scale.x,
+                            211 / scale.y,                    
+                        };
 
-                    float eclipse_padding = 61.f / scale.x;
-                    Rectangle eclipse_dest = {
-                        .x = (616.f / scale.x) + ((final_eclipse_image_size.x + eclipse_padding) * i) + template_dest.x,
-                        .y = 295.f / scale.y + template_dest.y,
-                        .width  = final_eclipse_image_size.x,
-                        .height = final_eclipse_image_size.y 
-                    };
+                        float eclipse_padding = 61.f / scale.x;
+                        Rectangle eclipse_dest = {
+                            .x = (616.f / scale.x) + ((final_eclipse_image_size.x + eclipse_padding) * i) + template_dest.x,
+                            .y = 295.f / scale.y + template_dest.y,
+                            .width  = final_eclipse_image_size.x,
+                            .height = final_eclipse_image_size.y 
+                        };
 
-                    DrawTexturePro(eclipse_texture, 
-                            eclipse_source,
-                            eclipse_dest,
-                            { 0.f, 0.f}, 
-                            0.f, 
-                            WHITE);
+                        DrawTexturePro(eclipse_texture, 
+                                eclipse_source,
+                                eclipse_dest,
+                                { 0.f, 0.f}, 
+                                0.f, 
+                                WHITE);
 
-                    eclipse_level_collision_entities.emplace_back((Eclipse_Level_Collsion_Entity){eclipse_dest, (UInt)i});
+                        eclipse_level_collision_entities.emplace_back((Eclipse_Level_Collsion_Entity){eclipse_dest, (UInt)i});
+                    }
                 }
                 // Eclipse level ----------------------------------- //
             }
@@ -670,6 +736,7 @@ int main() {
                         UInt modifiers_width[] = { 2030, 1975, 2314, 1636, 1407, 1797, 1766, 2311 };
                         UInt modifiers_height = 201;
 
+                        // TODO: check if eclipse_level is being handle correctly.
                         Rectangle modifiers_source = {
                             0.f, 
                             (float)modifiers_height*entity.eclipse_level,
@@ -806,6 +873,7 @@ int main() {
                 .y = (float)numbers_texture.height,
             };
 
+            //std::cout << "mastery_level: " << mastery_level << '\n';
             Vector2 mastery_relative_position = { 330.f, 323.f };
             switch (mastery_level) {
                 break; case 0: mastery_relative_position = { 328.f, 310.f };
@@ -1048,8 +1116,11 @@ int main() {
     return 0;
 }
 
-
 // TODO:
-// 1(COOLDOWN). When the cooldown get to zero it should do the animation of realoading and also write reload on the screen. The button should get locked so only pressing or cooldown can do it at any given time.
-// 2. Handle the the xml file does not have a dlc survivor.
+// 2. Mastery should only be awarded if the player has only all the characters unlocked????
+// 4. Make the "locked" filter.
 
+// FIXED:
+// 3. Completion percent maybe be wrong, so it will nice to verify it.
+// 1. Mastery level does not work properly, it either shows 1 too many o 1 to few.
+// 2. Completion mastery also is messed up, showing way too much.
