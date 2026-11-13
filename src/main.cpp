@@ -188,9 +188,7 @@ void order_and_correct_survivor_list(const std::map<std::string, UInt>& survivor
     eclipse_level_sum = 0;
     mastery_level = 9; 
     for (const auto& [name, e_level] : survivors_ordered_from_image_file) {
-        // TODO: Should this be 0 if there is a character locked or not?
-        //if (e_level == LOCKED_CHARACTER) continue;
-        if (e_level == LOCKED_CHARACTER) {
+        if (e_level == LOCKED_CHARACTER) { // NOTE: You can only achieve mastery having all the characters in the game unlocked.
             mastery_level = 0;
             continue;
         }
@@ -663,19 +661,17 @@ int main() {
                     final_survivor_image_size.y 
                 };
 
-                // LOCKED
                 DrawTexturePro(survivors_texture, 
                         survivor_source,
                         survivor_dest,
                         { 0.f, 0.f}, 
                         0.f, 
-                        WHITE); // TODO: Alter this to make the locked character.
-
+                        survivors_ordered[index].second == LOCKED_CHARACTER ? BLACK : WHITE);
                 // Survivor ---------------------------------------- //
 
 
                 // Survivor name ----------------------------------- //
-                std::string survivor_name = survivors_ordered[index].first;
+                std::string survivor_name = survivors_ordered[index].second == LOCKED_CHARACTER ? "???" : survivors_ordered[index].first;
 
                 Rectangle final_text = {
                     600.f / scale.x + template_dest.x,
@@ -741,7 +737,6 @@ int main() {
                         UInt modifiers_width[] = { 2030, 1975, 2314, 1636, 1407, 1797, 1766, 2311 };
                         UInt modifiers_height = 201;
 
-                        // TODO: check if eclipse_level is being handle correctly.
                         Rectangle modifiers_source = {
                             0.f, 
                             (float)modifiers_height*entity.eclipse_level,
@@ -878,7 +873,6 @@ int main() {
                 .y = (float)numbers_texture.height,
             };
 
-            //std::cout << "mastery_level: " << mastery_level << '\n';
             Vector2 mastery_relative_position = { 330.f, 323.f };
             switch (mastery_level) {
                 break; case 0: mastery_relative_position = { 328.f, 310.f };
@@ -1120,12 +1114,3 @@ int main() {
 
     return 0;
 }
-
-// TODO:
-// 4(LOCKED). Make the "locked" filter.
-
-// FIXED:
-// 2. Mastery should only be awarded if the player has only all the characters unlocked????
-// 3. Completion percent maybe be wrong, so it will nice to verify it.
-// 1. Mastery level does not work properly, it either shows 1 too many o 1 to few.
-// 2. Completion mastery also is messed up, showing way too much.
