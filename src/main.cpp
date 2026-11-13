@@ -181,7 +181,6 @@ void order_and_correct_survivor_list(const std::map<std::string, UInt>& survivor
     int index = 0;
     for (const auto& [name, e_level] : survivors) {
         std::string temp_name = correct_names[name] != "" ? correct_names[name] : name;
-        //survivors_ordered_from_image_file[survivor_order[index]-1] = std::make_pair(temp_name, e_level > 0 ? e_level : 0);
         survivors_ordered_from_image_file[survivor_order[index]-1] = std::make_pair(temp_name, e_level);
         index++;
     }
@@ -189,7 +188,12 @@ void order_and_correct_survivor_list(const std::map<std::string, UInt>& survivor
     eclipse_level_sum = 0;
     mastery_level = 9; 
     for (const auto& [name, e_level] : survivors_ordered_from_image_file) {
-        if (e_level == LOCKED_CHARACTER) continue;
+        // TODO: Should this be 0 if there is a character locked or not?
+        //if (e_level == LOCKED_CHARACTER) continue;
+        if (e_level == LOCKED_CHARACTER) {
+            mastery_level = 0;
+            continue;
+        }
 
         if (e_level < mastery_level) mastery_level = e_level;
 
@@ -659,12 +663,13 @@ int main() {
                     final_survivor_image_size.y 
                 };
 
+                // LOCKED
                 DrawTexturePro(survivors_texture, 
                         survivor_source,
                         survivor_dest,
                         { 0.f, 0.f}, 
                         0.f, 
-                        WHITE);
+                        WHITE); // TODO: Alter this to make the locked character.
 
                 // Survivor ---------------------------------------- //
 
@@ -1117,10 +1122,10 @@ int main() {
 }
 
 // TODO:
-// 2. Mastery should only be awarded if the player has only all the characters unlocked????
-// 4. Make the "locked" filter.
+// 4(LOCKED). Make the "locked" filter.
 
 // FIXED:
+// 2. Mastery should only be awarded if the player has only all the characters unlocked????
 // 3. Completion percent maybe be wrong, so it will nice to verify it.
 // 1. Mastery level does not work properly, it either shows 1 too many o 1 to few.
 // 2. Completion mastery also is messed up, showing way too much.
