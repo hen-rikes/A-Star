@@ -30,14 +30,11 @@ struct Eclipse_Level_Collsion_Entity {
 };
 
 
-// TODO: Get windows thingy here.
-#define windows 1
-#if windows
+#if _WIN64
 #define SLASH '\\'
 #else
 #define SLASH '/'
 #endif
-
 
 #define FILE_OPENED_SUCCESSFULLY 0 
 #define COULD_NOT_OPEN_FILE      1 
@@ -548,8 +545,6 @@ int main() {
         } else if (state == MAIN_STATE) {
             if (load_eclipse_info_from_xml_file_once) { // NOTE: We load the info from the file once at startup.
                 eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
-                // TODO: After get_eclipse_info_from_xml() func
-                //std::cout << "After get_eclipse_info_from_xml() func\n";
                 load_eclipse_info_from_xml_file_once = false;
 
                 if (eclipse_info_xml_file_state == COULD_NOT_OPEN_FILE) {
@@ -576,6 +571,7 @@ int main() {
             clamp(camera.target.y, 0.f, max_camera_y);
             mouse_wheel = GetMouseWheelMoveV();
 
+            // Cooldown.
             time_until_next_update -= GetFrameTime();
             if (time_until_next_update < 1.f) {
                 time_until_next_update = cooldown_time_for_reloading;
@@ -754,7 +750,7 @@ int main() {
                 // Eclipse level ----------------------------------- //
             }
 
-            // Modifers ------------------------------------ //
+            // Modifiers ------------------------------------ //
             mouse_pos = GetMousePosition();
             for (const auto& entity : eclipse_level_collision_entities) {
                 if (CheckCollisionPointRec({mouse_pos.x, mouse_pos.y+camera.target.y}, entity.boundary)) {
@@ -784,7 +780,7 @@ int main() {
                         DrawTexturePro(modifiers_texture, modifiers_source, {modifiers_dest_pos.x, modifiers_dest_pos.y, modifiers_dest_size.x, modifiers_dest_size.y}, {0.f, 0.f}, 0.f, WHITE);
                 }
             }
-            // Modifers ------------------------------------ //
+            // Modifiers ------------------------------------ //
 
             template_complete_boundary.height *= survivors_ordered_from_image_file.size();
             EndMode2D();
@@ -1009,7 +1005,6 @@ int main() {
                 reload_pos.y + reload_size/2.f - time_size.y/2.f
             };
 
-            // COOLDOWN
             if (CheckCollisionPointRec(mouse_pos, {reload_pos.x, reload_pos.y, reload_size, reload_size})) {
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && is_animation_done) {
                     if (!std::filesystem::exists(file_path)) {
@@ -1112,6 +1107,7 @@ int main() {
 
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                     change_sort_texture = !change_sort_texture;
+                    camera.target.y = 0.f;
                 }
             }
 
@@ -1138,6 +1134,3 @@ int main() {
 
     return 0;
 }
-
-
-// TODO: Return to the top when ascending or descending.
