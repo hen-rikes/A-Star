@@ -6,5 +6,4 @@ font/*.rar
 *.exe
 releases
 xml_for_tests
-objs/*.o
 DEBUG_WITH_CODEBLOCKS/
