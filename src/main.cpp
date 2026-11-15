@@ -113,17 +113,6 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
         }
     }
 
-    std::cout << "----------- Unlocked Characters -----------\n";
-    for (const auto& c : unlocked_characters) {
-        printf("Character: %s\n", c.c_str());
-    }
-    std::cout << "----------- Unlocked Characters -----------\n";
-
-    //std::map<std::string, std::string> correct_names = {
-    //    {"Engi", "Engineer"},
-    //    {"Merc", "Mercenary"},
-    //};
-
     { // NOTE: Retrieving from the xml_file the eclipse level and name of every character that has completed at least one level of the alternate mode eclipse.
         std::vector<std::string> keys_from_survivors_map{};
         for (auto it = survivor_map.begin(); it != survivor_map.end(); it++) keys_from_survivors_map.emplace_back(it->first);
@@ -139,7 +128,6 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
             bool locked_character = true;
             for (size_t i = 0; i < unlocked_characters.size(); i++) {
                 const std::string& unlocked_character = unlocked_characters[i] == "Engineer" ? "Engi" : unlocked_characters[i] == "Mercenary" ? "Merc" : unlocked_characters[i];
-                printf("current_character: %s | unlocked_character: %s | unlocked_characters[i]: %s\n", current_character.c_str(), unlocked_character.c_str(), unlocked_characters[i].c_str());
                 if (current_character == unlocked_character) {
                     locked_character = false;
                     break;
@@ -168,112 +156,8 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
             UInt eclipse_level = std::stoll(xml_file.substr(character_pos + character_identifier.size(), 1));
 
             survivor_map[current_character] = eclipse_level;
-            //std::cout << "character_identifier: " << character_identifier << " | " << "eclipse_level: " << eclipse_level << '\n';
         }
     }
-
-    std::cout << "survivor_map.size()*8: " << survivor_map.size()*8 << '\n';
-    std::cout << "----------- Characters -----------\n";
-    for (const auto& [key, value] : survivor_map) {
-        printf("Survivor: %s | Eclipse: %u\n", key.c_str(), value);
-    }
-    return FILE_OPENED_SUCCESSFULLY;
-}
-
-UInt get_eclipse_info_from_xml_old(const char* file_path, std::map<std::string, UInt>& survivor_map) {
-    std::ifstream eclipse_file(file_path);
-    if (!eclipse_file) return COULD_NOT_OPEN_FILE;
-
-    char* buffer{};
-    size_t file_length{};
-
-    eclipse_file.seekg(0, eclipse_file.end);
-    file_length = eclipse_file.tellg();
-    eclipse_file.seekg(0, eclipse_file.beg);
-
-    buffer = new char[file_length];
-    eclipse_file.read(buffer, file_length);
-    eclipse_file.close();
-
-    std::string file_content = buffer;
-
-    std::vector<std::string> unlocked_characters = { "Commando", "Huntress", };
-    {
-        const size_t number_of_characters_unlocked_by_ownership = 4;
-        const std::string unlocked_by_ownership[number_of_characters_unlocked_by_ownership] = { "Enforcer2", "DroneTech", "Railgunner", "Seeker", };
-
-        const std::string bodyNameTag = "bodyName=";
-        for (size_t i = 0; i < number_of_characters_unlocked_by_ownership; i++) {
-            std::string full_tag = TextFormat("%s\"%sBody\"", bodyNameTag.c_str(), unlocked_by_ownership[i].c_str());
-
-            size_t res = file_content.find(full_tag, 0);
-            if (res != std::string::npos) unlocked_characters.emplace_back(unlocked_by_ownership[i]);
-            else  continue; 
-        }
-    }
-
-    {
-        std::string character_identifier = "Characters.";
-        size_t character_identifier_pos = 0;
-
-        while (1) {
-            size_t character_identifier_index = file_content.find(character_identifier, character_identifier_pos);
-            if (character_identifier_index == std::string::npos || character_identifier_index >= file_length) break;
-
-            size_t character_name_start_at = character_identifier_index + character_identifier.size();
-            size_t end_of_survivor_name = file_content.find("</u", character_name_start_at);
-            size_t character_name_length = end_of_survivor_name - character_name_start_at;
-
-            std::string survivor_name = file_content.substr(character_name_start_at, character_name_length);
-            unlocked_characters.emplace_back(survivor_name);
-
-            character_identifier_pos = character_identifier_index+1;
-        }
-    }
-
-    std::map<std::string, std::string> correct_names = {
-        {"Engi", "Engineer"},
-        {"Merc", "Mercenary"},
-    };
-
-    std::string identifier = "Eclipse.";
-    size_t identifier_pos = 0;
-    size_t end_of_survivor_name = 0;
-    size_t identifier_pos_plus_identifier_length = identifier_pos + identifier.length();
-
-    // TODO: There is a problem here.
-    // Look, i don't know how, but survivor_name carring this value = "ersion="1" has made a infinite loop.
-    // WITH FORs, dont know how.
-    for (size_t i = 0; i < file_length; i++) {
-        if (end_of_survivor_name+2 >= file_content.find("</unlock></stats>")) break;
-
-        identifier_pos = file_content.find(identifier, identifier_pos_plus_identifier_length);
-        identifier_pos_plus_identifier_length = identifier_pos + identifier.length();
-
-        end_of_survivor_name = file_content.find(".", identifier_pos_plus_identifier_length);
-
-        std::string survivor_name = file_content.substr(identifier_pos_plus_identifier_length, end_of_survivor_name - identifier_pos_plus_identifier_length);
-        std::cout << "survivor_name: " << survivor_name << '\n';
-
-        bool survivor_is_locked = false;
-        for (size_t j = 0; j < unlocked_characters.size(); j++) {
-            auto corrected_name_if_needed = correct_names.find(survivor_name);
-            const std::string& final_name = (corrected_name_if_needed == correct_names.end()) ? survivor_name : corrected_name_if_needed->second; 
-            if (final_name == unlocked_characters[j]) {
-                survivor_is_locked = false;
-                break;
-            } else {
-                survivor_is_locked = true;
-                // TODO: i think you can put a break here.
-                break;
-            }
-        }
-        UInt survivor_eclipse_level = std::stoll(file_content.substr(end_of_survivor_name+1, 1));
-
-        survivor_map[survivor_name] = survivor_is_locked ? LOCKED_CHARACTER : survivor_eclipse_level;
-    }
-
-    delete[] buffer;
 
     return FILE_OPENED_SUCCESSFULLY;
 }
