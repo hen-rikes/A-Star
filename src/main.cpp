@@ -79,8 +79,12 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
     UnloadFileText(buffer);
 
 
-    std::vector<std::string> unlocked_characters = { "Commando", "Huntress", };
-    { // NOTE: Cheking which of the dafult unlocked characters
+    std::map<std::string, UInt> unlocked_characters = { 
+        { "Commando", 1 },
+        { "Huntress", 1 },
+    };
+
+    { // NOTE: Checking which of the default unlocked characters
         const size_t number_of_characters_unlocked_by_ownership = 4;
         const std::string unlocked_by_ownership[number_of_characters_unlocked_by_ownership] = { "Enforcer2", "DroneTech", "Railgunner", "Seeker", };
 
@@ -89,7 +93,7 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
             std::string full_tag = TextFormat("%s\"%sBody\"", bodyNameTag.c_str(), unlocked_by_ownership[i].c_str());
 
             size_t res = xml_file.find(full_tag, 0);
-            if (res != std::string::npos) unlocked_characters.emplace_back(unlocked_by_ownership[i]);
+            if (res != std::string::npos) unlocked_characters[unlocked_by_ownership[i]] = 1;
             else continue; 
         }
     }
@@ -107,7 +111,7 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
             size_t character_name_length = end_of_survivor_name - character_name_start_at;
 
             std::string survivor_name = xml_file.substr(character_name_start_at, character_name_length);
-            unlocked_characters.emplace_back(survivor_name);
+            unlocked_characters[survivor_name] = 1;
 
             character_identifier_pos = character_identifier_index+1;
         }
@@ -125,17 +129,10 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
             if (character_index >= survivor_map.size()) break;  
 
             const std::string& current_character = keys_from_survivors_map[character_index];
+
             bool locked_character = true;
-            for (size_t i = 0; i < unlocked_characters.size(); i++) {
-                const std::string& unlocked_character = unlocked_characters[i] == "Engineer" ? "Engi" : unlocked_characters[i] == "Mercenary" ? "Merc" : unlocked_characters[i];
-                if (current_character == unlocked_character) {
-                    locked_character = false;
-                    break;
-                }
-                else {
-                    locked_character = true;
-                }
-            }
+            const std::string& name_corrected = current_character == "Engi" ? "Engineer" : current_character == "Merc" ? "Mercenary" : current_character;
+            if (unlocked_characters[name_corrected]) locked_character = false;
 
             if (locked_character) {
                 character_pos = 0;
@@ -1122,3 +1119,6 @@ int main() {
 
     return 0;
 }
+
+
+// TODO: Opposites Ascending descending order for the locked characters.

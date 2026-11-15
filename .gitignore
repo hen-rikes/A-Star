@@ -6,3 +6,4 @@ font/*.rar
 *.exe
 releases
 xml_for_tests
+objs/*
