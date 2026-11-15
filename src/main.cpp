@@ -70,6 +70,117 @@ UInt is_xml_file_valid(const std::string& file_path) {
 }
 
 UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt>& survivor_map) {
+    (void)survivor_map;
+
+    char* buffer = LoadFileText(file_path);
+    if (buffer == nullptr) return COULD_NOT_OPEN_FILE;
+
+    std::string xml_file = buffer;
+    UnloadFileText(buffer);
+
+
+    std::vector<std::string> unlocked_characters = { "Commando", "Huntress", };
+    { // NOTE: Cheking which of the dafult unlocked characters
+        const size_t number_of_characters_unlocked_by_ownership = 4;
+        const std::string unlocked_by_ownership[number_of_characters_unlocked_by_ownership] = { "Enforcer2", "DroneTech", "Railgunner", "Seeker", };
+
+        const std::string bodyNameTag = "bodyName=";
+        for (size_t i = 0; i < number_of_characters_unlocked_by_ownership; i++) {
+            std::string full_tag = TextFormat("%s\"%sBody\"", bodyNameTag.c_str(), unlocked_by_ownership[i].c_str());
+
+            size_t res = xml_file.find(full_tag, 0);
+            if (res != std::string::npos) unlocked_characters.emplace_back(unlocked_by_ownership[i]);
+            else continue; 
+        }
+    }
+
+    { // NOTE: Checking if the player has unlocked the remaining characters available via achievements.
+        const std::string character_identifier = "Characters.";
+        size_t character_identifier_pos = 0;
+
+        while (1) {
+            size_t character_identifier_index = xml_file.find(character_identifier, character_identifier_pos);
+            if (character_identifier_index == std::string::npos || character_identifier_index >= xml_file.size()) break;
+
+            size_t character_name_start_at = character_identifier_index + character_identifier.size();
+            size_t end_of_survivor_name = xml_file.find("</u", character_name_start_at);
+            size_t character_name_length = end_of_survivor_name - character_name_start_at;
+
+            std::string survivor_name = xml_file.substr(character_name_start_at, character_name_length);
+            unlocked_characters.emplace_back(survivor_name);
+
+            character_identifier_pos = character_identifier_index+1;
+        }
+    }
+
+    std::cout << "----------- Unlocked Characters -----------\n";
+    for (const auto& c : unlocked_characters) {
+        printf("Character: %s\n", c.c_str());
+    }
+    std::cout << "----------- Unlocked Characters -----------\n";
+
+    //std::map<std::string, std::string> correct_names = {
+    //    {"Engi", "Engineer"},
+    //    {"Merc", "Mercenary"},
+    //};
+
+    { // NOTE: Retrieving from the xml_file the eclipse level and name of every character that has completed at least one level of the alternate mode eclipse.
+        std::vector<std::string> keys_from_survivors_map{};
+        for (auto it = survivor_map.begin(); it != survivor_map.end(); it++) keys_from_survivors_map.emplace_back(it->first);
+
+        const std::string identifier = "<unlock>Eclipse.";
+
+        size_t character_index = 0;
+        size_t character_pos   = 0;
+        while (1) {
+            if (character_index >= survivor_map.size()) break;  
+
+            const std::string& current_character = keys_from_survivors_map[character_index];
+            bool locked_character = true;
+            for (size_t i = 0; i < unlocked_characters.size(); i++) {
+                const std::string& unlocked_character = unlocked_characters[i] == "Engineer" ? "Engi" : unlocked_characters[i] == "Mercenary" ? "Merc" : unlocked_characters[i];
+                printf("current_character: %s | unlocked_character: %s | unlocked_characters[i]: %s\n", current_character.c_str(), unlocked_character.c_str(), unlocked_characters[i].c_str());
+                if (current_character == unlocked_character) {
+                    locked_character = false;
+                    break;
+                }
+                else {
+                    locked_character = true;
+                }
+            }
+
+            if (locked_character) {
+                character_pos = 0;
+                character_index++;
+                survivor_map[current_character] = LOCKED_CHARACTER;
+                continue;
+            }
+
+            std::string character_identifier = identifier + current_character;
+            size_t index = xml_file.find(character_identifier, character_pos);
+            if (index == std::string::npos) {
+                character_pos = 0;
+                character_index++;
+                continue;
+            }
+
+            character_pos = index + 1;
+            UInt eclipse_level = std::stoll(xml_file.substr(character_pos + character_identifier.size(), 1));
+
+            survivor_map[current_character] = eclipse_level;
+            //std::cout << "character_identifier: " << character_identifier << " | " << "eclipse_level: " << eclipse_level << '\n';
+        }
+    }
+
+    std::cout << "survivor_map.size()*8: " << survivor_map.size()*8 << '\n';
+    std::cout << "----------- Characters -----------\n";
+    for (const auto& [key, value] : survivor_map) {
+        printf("Survivor: %s | Eclipse: %u\n", key.c_str(), value);
+    }
+    return FILE_OPENED_SUCCESSFULLY;
+}
+
+UInt get_eclipse_info_from_xml_old(const char* file_path, std::map<std::string, UInt>& survivor_map) {
     std::ifstream eclipse_file(file_path);
     if (!eclipse_file) return COULD_NOT_OPEN_FILE;
 
@@ -130,6 +241,9 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
     size_t end_of_survivor_name = 0;
     size_t identifier_pos_plus_identifier_length = identifier_pos + identifier.length();
 
+    // TODO: There is a problem here.
+    // Look, i don't know how, but survivor_name carring this value = "ersion="1" has made a infinite loop.
+    // WITH FORs, dont know how.
     for (size_t i = 0; i < file_length; i++) {
         if (end_of_survivor_name+2 >= file_content.find("</unlock></stats>")) break;
 
@@ -139,6 +253,7 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
         end_of_survivor_name = file_content.find(".", identifier_pos_plus_identifier_length);
 
         std::string survivor_name = file_content.substr(identifier_pos_plus_identifier_length, end_of_survivor_name - identifier_pos_plus_identifier_length);
+        std::cout << "survivor_name: " << survivor_name << '\n';
 
         bool survivor_is_locked = false;
         for (size_t j = 0; j < unlocked_characters.size(); j++) {
@@ -149,6 +264,8 @@ UInt get_eclipse_info_from_xml(const char* file_path, std::map<std::string, UInt
                 break;
             } else {
                 survivor_is_locked = true;
+                // TODO: i think you can put a break here.
+                break;
             }
         }
         UInt survivor_eclipse_level = std::stoll(file_content.substr(end_of_survivor_name+1, 1));
@@ -223,8 +340,9 @@ std::string save_to_file(const std::string& file_path) {
 UInt read_file(const std::string& file_path, std::string& xml_file) {
     if (!FileExists(file_path.c_str())) return COULD_NOT_OPEN_FILE;
 
-    std::ifstream file(file_path);
-    if (!file) return COULD_NOT_OPEN_FILE;
+    // NOT: OLD code that i think is removable, but it is good to test.
+    // std::ifstream file(file_path);
+    // if (!file) return COULD_NOT_OPEN_FILE;
 
     char* buffer = LoadFileText(file_path.c_str());
     if (buffer == nullptr) return COULD_NOT_OPEN_FILE;
@@ -372,6 +490,7 @@ int main() {
         xml_file = "";
     } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) {
         state = LOADING_STATE;
+        printf("file_path: %s | xml_file: %s\n", file_path.c_str(), xml_file.c_str());
     }
 
     // MainState Setup -------------------------------- //
@@ -439,14 +558,15 @@ int main() {
             if (!are_all_textures_loaded) {
                 if (texture_index == 0) {
                     textures[texture_index] = LoadTexture(textures_paths[texture_index].c_str());
+                    printf("TEXTURE: ]%s] was loaded successfully!\n", textures_paths[texture_index].c_str());
                     SetTextureFilter(textures[texture_index], TEXTURE_FILTER_TRILINEAR);
                     SetWindowIcon(LoadImageFromTexture(icon_texture));
 
                     texture_index++;
-                }
-                else if (texture_index < texture_count) {
+                } else if (texture_index < texture_count) {
                     textures[texture_index] = LoadTexture(textures_paths[texture_index].c_str());
                     SetTextureFilter(textures[texture_index], TEXTURE_FILTER_TRILINEAR);
+                    printf("TEXTURE: [%s] was loaded successfully!\n", textures_paths[texture_index].c_str());
 
                     texture_index++;
                 } else {
@@ -459,11 +579,13 @@ int main() {
                     state = NO_FILE_STATE;
                     if (read_file_state == COULD_NOT_OPEN_FILE) {
                         std::cout << "Could not open file!\n";
+                        std::cout << "I was sent to the no file state\n";
 
                         state = NO_FILE_STATE;
                         xml_file = "";
                     } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) {
                         state = MAIN_STATE;
+                        std::cout << "I was sent to the main state\n";
                     }
                 }
             } 
@@ -526,6 +648,8 @@ int main() {
         } else if (state == MAIN_STATE) {
             if (load_eclipse_info_from_xml_file_once) { // NOTE: We load the info from the file once at startup.
                 eclipse_info_xml_file_state = get_eclipse_info_from_xml(xml_file.c_str(), survivors);
+                // TODO: After get_eclipse_info_from_xml() func
+                //std::cout << "After get_eclipse_info_from_xml() func\n";
                 load_eclipse_info_from_xml_file_once = false;
 
                 if (eclipse_info_xml_file_state == COULD_NOT_OPEN_FILE) {
