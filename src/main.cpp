@@ -29,6 +29,16 @@ struct Eclipse_Level_Collsion_Entity {
     UInt eclipse_level;
 };
 
+
+// TODO: Get windows thingy here.
+#define windows 1
+#if windows
+#define SLASH '\\'
+#else
+#define SLASH '/'
+#endif
+
+
 #define FILE_OPENED_SUCCESSFULLY 0 
 #define COULD_NOT_OPEN_FILE      1 
 
@@ -206,7 +216,8 @@ std::string save_to_file(const std::string& file_path) {
     if (xml_file_state == IS_NOT_A_VALID_XML) return "";
 
     if (xml_file_state == IS_A_VALID_XML) {
-        std::fstream xml_file("./xml_path.txt", std::fstream::out);
+        std::filesystem::path current_directory = std::filesystem::current_path();
+        std::fstream xml_file(TextFormat(".%cxml_path.txt", SLASH), std::fstream::out);
         if (!xml_file) return "";
         
         xml_file.write(file_path.c_str(), file_path.size());
@@ -220,10 +231,6 @@ std::string save_to_file(const std::string& file_path) {
 
 UInt read_file(const std::string& file_path, std::string& xml_file) {
     if (!FileExists(file_path.c_str())) return COULD_NOT_OPEN_FILE;
-
-    // NOT: OLD code that i think is removable, but it is good to test.
-    // std::ifstream file(file_path);
-    // if (!file) return COULD_NOT_OPEN_FILE;
 
     char* buffer = LoadFileText(file_path.c_str());
     if (buffer == nullptr) return COULD_NOT_OPEN_FILE;
@@ -245,7 +252,7 @@ enum Survivor_Order : UInt {
     Descending,
 };
 
-std::vector<Entity_Index> survivors_ordered_by_eclipse_level(std::vector<std::pair<std::string, UInt>>& survivors_ordered_from_image_file, std::vector<std::pair<std::string, UInt>>& survivors_ordered, Survivor_Order survivor_order) {
+std::vector<Entity_Index> survivors_ordered_by_eclipse_level(std::vector<std::pair<std::string, UInt>>& survivors_ordered_from_image_file, std::vector<std::pair<std::string, UInt>>& survivors_ordered, const Survivor_Order& survivor_order) {
     survivors_ordered.clear();
 
     std::vector<Entity_Index> entity_index{};
@@ -281,10 +288,28 @@ std::vector<Entity_Index> survivors_ordered_by_eclipse_level(std::vector<std::pa
         index++;
     }
 
+    if (survivor_order == Survivor_Order::Ascending) {
+        size_t number_of_locked_characters = 0;
+        for (const auto& e : entity_index) {
+            if (e.e_level == LOCKED_CHARACTER) {
+                number_of_locked_characters++; 
+            } else break;
+        }
+
+        if (entity_index.size() == number_of_locked_characters) std::cout << "[ERROR] This should never happen!\n";
+
+        for (size_t i = 0; i < entity_index.size() - number_of_locked_characters; i++) {
+            auto temp_entity = entity_index[i + number_of_locked_characters];
+            entity_index[i + number_of_locked_characters] = entity_index[i];
+            entity_index[i] = temp_entity; 
+        }
+    }
+
     for (size_t i = 0; i < survivors_ordered_from_image_file.size(); i++) survivors_ordered.emplace_back(survivors_ordered_from_image_file[entity_index[i].index]);
 
     return entity_index;
 }
+
 
 int main() {
     int width = 980, height = 900;
@@ -294,16 +319,16 @@ int main() {
     SetWindowMinSize(width, height);
 
     std::string textures_paths[] = {
-        "./images/Icon/MiniIcon.png",
-        "./images/Survivors/Survivors.png",
-        "./images/Eclipse/EclipseLevels.png",
-        "./images/Template/Template.png",
-        "./images/Completion/CompletionHUD.png",
-        "./images/MasteryNumbers/MasteryNumbers.png",
-        "./images/Modifiers/EclipseModifiers.png",
-        "./images/Icons/Reload.png",
-        "./images/Icons/SortUP.png",
-        "./images/Icons/SortDOWN.png",
+        TextFormat(".%cimages%cIcon%cMiniIcon.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cSurvivors%cSurvivors.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cEclipse%cEclipseLevels.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cTemplate%cTemplate.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cCompletion%cCompletionHUD.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cMasteryNumbers%cMasteryNumbers.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cModifiers%cEclipseModifiers.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cIcons%cReload.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cIcons%cSortUP.png", SLASH, SLASH, SLASH),
+        TextFormat(".%cimages%cIcons%cSortDOWN.png", SLASH, SLASH, SLASH),
     };
     size_t texture_count = sizeof(textures_paths)/sizeof(std::string);
 
@@ -363,16 +388,13 @@ int main() {
     };
 
     std::string xml_file = ""; 
-    std::string file_path = "./xml_path.txt";
+    std::string file_path = TextFormat(".%cxml_path.txt", SLASH);
     UInt read_file_state = read_file(file_path, xml_file);
     if (read_file_state == COULD_NOT_OPEN_FILE) {
         std::cout << "Could not open file!\n";
         state = LOADING_STATE;
         xml_file = "";
-    } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) {
-        state = LOADING_STATE;
-        printf("file_path: %s | xml_file: %s\n", file_path.c_str(), xml_file.c_str());
-    }
+    } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) state = LOADING_STATE;
 
     // MainState Setup -------------------------------- //
     std::vector<std::pair<std::string, UInt>> survivors_ordered_from_image_file{ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
@@ -460,13 +482,11 @@ int main() {
                     state = NO_FILE_STATE;
                     if (read_file_state == COULD_NOT_OPEN_FILE) {
                         std::cout << "Could not open file!\n";
-                        std::cout << "I was sent to the no file state\n";
 
                         state = NO_FILE_STATE;
                         xml_file = "";
                     } else if (read_file_state == FILE_OPENED_SUCCESSFULLY) {
                         state = MAIN_STATE;
-                        std::cout << "I was sent to the main state\n";
                     }
                 }
             } 
@@ -476,7 +496,6 @@ int main() {
                 if (files.count == 0) std::cout << "There is zero files\n";
 
                 std::string xml_file_path = files.paths[0];
-
                 std::string temp_file_path = save_to_file(xml_file_path);
                 if (temp_file_path == "") std::cout << "Could not open file!";
                 else {
@@ -1121,4 +1140,4 @@ int main() {
 }
 
 
-// TODO: Opposites Ascending descending order for the locked characters.
+// TODO: Return to the top when ascending or descending.
