@@ -2,6 +2,7 @@ images/Experiments
 *.rar
 *.xml
 *.txt
+*.o
 font/*.rar
 *.exe
 releases
